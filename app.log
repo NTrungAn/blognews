@@ -1,0 +1,188 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] ------------------------< com.blog:blogsystem >-------------------------
+[INFO] Building  0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] >>> spring-boot:4.0.6:run (default-cli) > test-compile @ blogsystem >>>
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ blogsystem ---
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] Copying 8 resources from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ blogsystem ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ blogsystem ---
+[INFO] skip non existing resourceDirectory D:\blognews\blogsystem\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ blogsystem ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 1 source file with javac [debug parameters release 21] to target\test-classes
+[INFO] 
+[INFO] <<< spring-boot:4.0.6:run (default-cli) < test-compile @ blogsystem <<<
+[INFO] 
+[INFO] 
+[INFO] --- spring-boot:4.0.6:run (default-cli) @ blogsystem ---
+[INFO] Attaching agents: []
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.0.6)
+
+2026-06-16T19:27:07.821+07:00  INFO 14124 --- [blogsystem] [           main] c.blog.blogsystem.BlogsystemApplication  : Starting BlogsystemApplication using Java 23 with PID 14124 (D:\blognews\blogsystem\target\classes started by Trung An in D:\blognews\blogsystem)
+2026-06-16T19:27:07.824+07:00  INFO 14124 --- [blogsystem] [           main] c.blog.blogsystem.BlogsystemApplication  : No active profile set, falling back to 1 default profile: "default"
+2026-06-16T19:27:08.542+07:00  INFO 14124 --- [blogsystem] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-06-16T19:27:08.594+07:00  INFO 14124 --- [blogsystem] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 44 ms. Found 7 JPA repository interfaces.
+2026-06-16T19:27:09.051+07:00  INFO 14124 --- [blogsystem] [           main] o.s.boot.tomcat.TomcatWebServer          : Tomcat initialized with port 8080 (http)
+2026-06-16T19:27:09.063+07:00  INFO 14124 --- [blogsystem] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-06-16T19:27:09.064+07:00  INFO 14124 --- [blogsystem] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/11.0.21]
+2026-06-16T19:27:09.128+07:00  INFO 14124 --- [blogsystem] [           main] b.w.c.s.WebApplicationContextInitializer : Root WebApplicationContext: initialization completed in 1255 ms
+2026-06-16T19:27:09.310+07:00  INFO 14124 --- [blogsystem] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-06-16T19:27:09.601+07:00  INFO 14124 --- [blogsystem] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@72fb989b
+2026-06-16T19:27:09.602+07:00  INFO 14124 --- [blogsystem] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-06-16T19:27:09.661+07:00  INFO 14124 --- [blogsystem] [           main] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://localhost:5432/blogsystemdb (PostgreSQL 18.3)
+2026-06-16T19:27:09.722+07:00  INFO 14124 --- [blogsystem] [           main] o.f.core.internal.command.DbValidate     : Successfully validated 8 migrations (execution time 00:00.032s)
+2026-06-16T19:27:09.745+07:00  INFO 14124 --- [blogsystem] [           main] o.f.core.internal.command.DbMigrate      : Current version of schema "public": 7
+2026-06-16T19:27:09.754+07:00  INFO 14124 --- [blogsystem] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "8 - create bookmarks table"
+2026-06-16T19:27:09.854+07:00  INFO 14124 --- [blogsystem] [           main] o.f.core.internal.command.DbMigrate      : Successfully applied 1 migration to schema "public", now at version v8 (execution time 00:00.090s)
+2026-06-16T19:27:09.946+07:00  INFO 14124 --- [blogsystem] [           main] org.hibernate.orm.jpa                    : HHH008540: Processing PersistenceUnitInfo [name: default]
+2026-06-16T19:27:10.009+07:00  INFO 14124 --- [blogsystem] [           main] org.hibernate.orm.core                   : HHH000001: Hibernate ORM core version 7.2.12.Final
+2026-06-16T19:27:10.406+07:00  INFO 14124 --- [blogsystem] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-06-16T19:27:10.493+07:00  INFO 14124 --- [blogsystem] [           main] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [jdbc:postgresql://localhost:5432/blogsystemdb]
+	Database driver: PostgreSQL JDBC Driver
+	Database dialect: PostgreSQLDialect
+	Database version: 18.3
+	Default catalog/schema: blogsystemdb/public
+	Autocommit mode: undefined/unknown
+	Isolation level: READ_COMMITTED [default READ_COMMITTED]
+	JDBC fetch size: none
+	Pool: DataSourceConnectionProvider
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-06-16T19:27:11.366+07:00  INFO 14124 --- [blogsystem] [           main] org.hibernate.orm.core                   : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-06-16T19:27:11.426+07:00  INFO 14124 --- [blogsystem] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-06-16T19:27:11.517+07:00  INFO 14124 --- [blogsystem] [           main] o.s.d.j.r.query.QueryEnhancerFactories   : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-06-16T19:27:11.834+07:00  INFO 14124 --- [blogsystem] [           main] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with UserDetailsService bean with name customUserDetailsService
+2026-06-16T19:27:13.169+07:00  INFO 14124 --- [blogsystem] [           main] o.s.boot.tomcat.TomcatWebServer          : Tomcat started on port 8080 (http) with context path '/'
+2026-06-16T19:27:13.175+07:00  INFO 14124 --- [blogsystem] [           main] c.blog.blogsystem.BlogsystemApplication  : Started BlogsystemApplication in 5.699 seconds (process running for 6.051)
+Hibernate: 
+    select
+        r1_0.id,
+        r1_0.description,
+        r1_0.role_name 
+    from
+        roles r1_0 
+    where
+        r1_0.role_name=?
+Hibernate: 
+    select
+        r1_0.id,
+        r1_0.description,
+        r1_0.role_name 
+    from
+        roles r1_0 
+    where
+        r1_0.role_name=?
+Hibernate: 
+    select
+        r1_0.id,
+        r1_0.description,
+        r1_0.role_name 
+    from
+        roles r1_0 
+    where
+        r1_0.role_name=?
+Hibernate: 
+    select
+        r1_0.id,
+        r1_0.description,
+        r1_0.role_name 
+    from
+        roles r1_0 
+    where
+        r1_0.role_name=?
+Hibernate: 
+    select
+        u1_0.id 
+    from
+        users u1_0 
+    where
+        u1_0.username=? 
+    fetch
+        first ? rows only
+2026-06-16T19:27:17.911+07:00  INFO 14124 --- [blogsystem] [nio-8080-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-06-16T19:27:17.911+07:00  INFO 14124 --- [blogsystem] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-06-16T19:27:17.912+07:00  INFO 14124 --- [blogsystem] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms
+Hibernate: 
+    select
+        u1_0.id,
+        u1_0.avatar,
+        u1_0.created_at,
+        u1_0.email,
+        u1_0.full_name,
+        u1_0.is_active,
+        u1_0.password_hash,
+        u1_0.updated_at,
+        u1_0.username 
+    from
+        users u1_0 
+    where
+        u1_0.username=?
+Hibernate: 
+    select
+        r1_0.user_id,
+        r1_1.id,
+        r1_1.description,
+        r1_1.role_name 
+    from
+        user_roles r1_0 
+    join
+        roles r1_1 
+            on r1_1.id=r1_0.role_id 
+    where
+        r1_0.user_id=?
+Hibernate: 
+    select
+        u1_0.id 
+    from
+        users u1_0 
+    where
+        u1_0.username=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        u1_0.id,
+        u1_0.avatar,
+        u1_0.created_at,
+        u1_0.email,
+        u1_0.full_name,
+        u1_0.is_active,
+        u1_0.password_hash,
+        u1_0.updated_at,
+        u1_0.username 
+    from
+        users u1_0 
+    where
+        u1_0.username=?
+Hibernate: 
+    select
+        r1_0.user_id,
+        r1_1.id,
+        r1_1.description,
+        r1_1.role_name 
+    from
+        user_roles r1_0 
+    join
+        roles r1_1 
+            on r1_1.id=r1_0.role_id 
+    where
+        r1_0.user_id=?
