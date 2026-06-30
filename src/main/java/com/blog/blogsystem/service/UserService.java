@@ -16,11 +16,13 @@ public interface UserService {
 
     UserResponse updateUserProfile(String username, UserUpdateRequest request);
 
-    PageResponse<UserResponse> getAllUsers(int pageNo, int pageSize, String sortBy, String sortDir);
+    PageResponse<UserResponse> getAllUsers(int pageNo, int pageSize, String sortBy, String sortDir, String keyword, String role);
 
     UserResponse updateUserRole(UUID userId, String newRoleName);
 
     void deleteUser(UUID userId);
 
     PublicProfileResponse getPublicProfile(String username, String currentUser);
+
+    java.util.List<PublicProfileResponse> getPopularAuthors();
 }

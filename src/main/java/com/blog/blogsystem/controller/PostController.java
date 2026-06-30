@@ -59,6 +59,15 @@ public class PostController {
         return ResponseEntity.ok(postService.getPostById(id));
     }
 
+    @GetMapping("/{id}/summarize")
+    public ResponseEntity<com.blog.blogsystem.dto.response.ApiResponse<String>> summarizePost(@PathVariable UUID id) {
+        return ResponseEntity.ok(com.blog.blogsystem.dto.response.ApiResponse.<String>builder()
+                .code(200)
+                .message("Tóm tắt bài viết thành công")
+                .data(postService.summarizePost(id))
+                .build());
+    }
+
     @GetMapping("/slug/{slug}")
     public ResponseEntity<PostResponse> getPostBySlug(@PathVariable String slug) {
         return ResponseEntity.ok(postService.getPostBySlug(slug));

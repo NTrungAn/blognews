@@ -38,6 +38,9 @@ public class PostServiceImpl implements PostService {
     private final UserRepository userRepository;
     private final PostMapper postMapper;
 
+    @org.springframework.beans.factory.annotation.Value("${GEMINI_API_KEY:}")
+    private String geminiApiKey;
+
     // ─────────────────────── CREATE ───────────────────────
 
     @Override
@@ -79,7 +82,7 @@ public class PostServiceImpl implements PostService {
     @Override
     @Transactional(readOnly = true)
     public PageResponse<PostResponse> getAllPosts(String categorySlug, String tagSlug, String statusStr, String keyword,
-                                                  int pageNo, int pageSize, String sortBy, String sortDir) {
+            int pageNo, int pageSize, String sortBy, String sortDir) {
         Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name())
                 ? Sort.by(sortBy).ascending()
                 : Sort.by(sortBy).descending();
@@ -96,7 +99,8 @@ public class PostServiceImpl implements PostService {
         }
 
         // Fix lỗi PSQLException: function lower(bytea) does not exist
-        // Khi truyền tham số null, Postgres tự gán là bytea. Truyền chuỗi rỗng "" để tránh lỗi ép kiểu.
+        // Khi truyền tham số null, Postgres tự gán là bytea. Truyền chuỗi rỗng "" để
+        // tránh lỗi ép kiểu.
         String searchKeyword = (keyword == null || keyword.trim().isEmpty()) ? "" : keyword.trim();
 
         Page<Post> posts = postRepository.findPostsWithFilters(categorySlug, tagSlug, status, searchKeyword, pageable);
@@ -117,7 +121,8 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional(readOnly = true)
-    public PageResponse<PostResponse> getMyPosts(String username, int pageNo, int pageSize, String sortBy, String sortDir) {
+    public PageResponse<PostResponse> getMyPosts(String username, int pageNo, int pageSize, String sortBy,
+            String sortDir) {
         Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name())
                 ? Sort.by(sortBy).ascending()
                 : Sort.by(sortBy).descending();
@@ -195,7 +200,8 @@ public class PostServiceImpl implements PostService {
         post.setTitle(request.getTitle());
         post.setSummary(request.getSummary());
         post.setContentMarkdown(request.getContentMarkdown());
-        // coverImage chỉ cập nhật nếu request gửi giá trị mới (upload file → set trong Controller)
+        // coverImage chỉ cập nhật nếu request gửi giá trị mới (upload file → set trong
+        // Controller)
         if (request.getCoverImage() != null) {
             post.setCoverImage(request.getCoverImage());
         }
@@ -224,10 +230,16 @@ public class PostServiceImpl implements PostService {
     @Override
     @Transactional
     public void deletePost(UUID id, String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng: " + username));
+        
+        boolean isAdmin = user.getRoles().stream()
+                .anyMatch(r -> r.getRoleName() == com.blog.blogsystem.entity.enums.RoleType.ADMIN);
+
         Post post = postRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Lỗi: Không tìm thấy bài viết."));
 
-        if (!post.getAuthor().getUsername().equals(username)) {
+        if (!isAdmin && !post.getAuthor().getUsername().equals(username)) {
             throw new RuntimeException("Lỗi: Bạn không có quyền xóa bài viết này.");
         }
 
@@ -253,5 +265,115 @@ public class PostServiceImpl implements PostService {
             slug = baseSlug + "-" + suffix++;
         }
         return slug;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public String summarizePost(UUID id) {
+        Post post = postRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy bài viết để tóm tắt"));
+
+        String apiKey = geminiApiKey;
+
+        if (apiKey == null || apiKey.isBlank()) {
+            return generateMockSummary(post);
+        }
+
+        try {
+            String articleText = "Title: " + post.getTitle() + "\nSummary: " + post.getSummary() + "\nContent:\n"
+                    + post.getContentMarkdown();
+            if (articleText.length() > 5000) {
+                articleText = articleText.substring(0, 5000) + "...";
+            }
+
+            String prompt = "Hãy tóm tắt bài viết sau đây bằng tiếng Việt trong khoảng 3 câu ngắn gọn dưới dạng danh sách gạch đầu dòng (bullet points). Hãy tập trung vào những ý cốt lõi quan trọng nhất.\n\nBài viết:\n"
+                    + articleText;
+
+            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            String promptJson = mapper.writeValueAsString(prompt);
+            String payload = "{\"contents\":[{\"parts\":[{\"text\":" + promptJson + "}]}]}";
+
+            java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
+            java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
+                    .uri(java.net.URI.create(
+                            "https://generativelanguage.googleapis.com/v1/models/gemini-3.1-flash-lite:generateContent?key="
+                                    + apiKey))
+                    .header("Content-Type", "application/json")
+                    .POST(java.net.http.HttpRequest.BodyPublishers.ofString(payload,
+                            java.nio.charset.StandardCharsets.UTF_8))
+                    .build();
+
+            java.net.http.HttpResponse<String> response = client.send(request,
+                    java.net.http.HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() == 200) {
+                String body = response.body();
+                com.fasterxml.jackson.databind.JsonNode rootNode = mapper.readTree(body);
+                com.fasterxml.jackson.databind.JsonNode textNode = rootNode.path("candidates").path(0).path("content")
+                        .path("parts").path(0).path("text");
+                if (!textNode.isMissingNode()) {
+                    return textNode.asText();
+                }
+            }
+            return "💡 [Lưu ý: Lỗi kết nối Google API (Status: " + response.statusCode() + ", Phản hồi: " + response.body() + "), đang sử dụng chế độ dự phòng]\n\n"
+                    + generateMockSummary(post);
+        } catch (Exception e) {
+            return "💡 [Lưu ý: Có lỗi xảy ra (" + e.getMessage() + "), đang sử dụng chế độ dự phòng thông minh]\n\n"
+                    + generateMockSummary(post);
+        }
+    }
+
+    private String generateMockSummary(Post post) {
+        StringBuilder summary = new StringBuilder();
+        summary.append("✨ Tóm tắt bài viết bởi Trợ lý AI (Chế độ Demo):\n\n");
+        if (post.getSummary() != null && !post.getSummary().isBlank()) {
+            summary.append("• ").append(post.getSummary()).append("\n");
+        } else {
+            summary.append("• Bài viết chia sẻ các thông tin hữu ích về chủ đề \"").append(post.getTitle())
+                    .append("\".\n");
+        }
+
+        String content = post.getContentMarkdown() != null ? post.getContentMarkdown() : "";
+
+        java.util.List<String> headings = new java.util.ArrayList<>();
+        java.util.regex.Matcher matcher = java.util.regex.Pattern.compile("(?m)^#{2,3}\\s+(.+)$").matcher(content);
+        while (matcher.find() && headings.size() < 2) {
+            headings.add(matcher.group(1).trim());
+        }
+
+        if (!headings.isEmpty()) {
+            for (String heading : headings) {
+                summary.append("• Bài viết tập trung phân tích khía cạnh: ").append(heading).append(".\n");
+            }
+        } else {
+            summary.append(
+                    "• Độc giả có thể tìm thấy hướng dẫn chi tiết và phân tích sâu về chủ đề này thông qua nội dung bài viết.\n");
+            summary.append(
+                    "• Thích hợp cho những ai muốn tìm hiểu, nghiên cứu và áp dụng kiến thức này vào thực tế công việc.\n");
+        }
+
+        summary.append("\n*⚙️ Cấu hình biến môi trường `GEMINI_API_KEY` để kích hoạt Trí tuệ Nhân tạo thực tế.*");
+        return summary.toString();
+    }
+
+    @Override
+    @Transactional
+    public PostResponse updatePostStatusByAdmin(UUID id, PostStatus status, String adminUsername) {
+        User admin = userRepository.findByUsername(adminUsername)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng: " + adminUsername));
+
+        boolean isAdmin = admin.getRoles().stream()
+                .anyMatch(r -> r.getRoleName() == com.blog.blogsystem.entity.enums.RoleType.ADMIN);
+
+        if (!isAdmin) {
+            throw new RuntimeException("Bạn không có quyền thực hiện hành động này.");
+        }
+
+        Post post = postRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Lỗi: Không tìm thấy bài viết."));
+
+        post.setStatus(status);
+        Post savedPost = postRepository.save(post);
+        return postMapper.toResponse(savedPost);
     }
 }

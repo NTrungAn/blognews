@@ -23,4 +23,8 @@ public interface PostService {
     PostResponse updatePost(UUID id, PostRequest request, String username);
 
     void deletePost(UUID id, String username);
+
+    PostResponse updatePostStatusByAdmin(UUID id, com.blog.blogsystem.entity.enums.PostStatus status, String adminUsername);
+
+    String summarizePost(UUID id);
 }

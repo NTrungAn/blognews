@@ -1,0 +1,9 @@
+# ─────────────── Cấu hình Bảo mật Cá nhân Local (Mẫu) ───────────────
+# Nhân bản (duplicate) file này thành "application-local.properties" và điền các giá trị thực tế.
+
+# Cấu hình Database máy cá nhân của bạn
+spring.datasource.username=your_db_username
+spring.datasource.password=your_db_password
+
+# Khóa API Google Gemini để sử dụng Trợ lý Tóm tắt AI
+GEMINI_API_KEY=AIzaSyYourGeminiApiKeyHere

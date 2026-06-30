@@ -121,6 +121,19 @@ public class CommentController {
         return ResponseEntity.ok().build();
     }
 
+    /**
+     * Báo cáo bình luận vi phạm với lý do cụ thể.
+     */
+    @PostMapping("/{commentId}/report")
+    public ResponseEntity<String> reportComment(
+            @PathVariable UUID postId,
+            @PathVariable UUID commentId,
+            @Valid @RequestBody com.blog.blogsystem.dto.request.CommentReportRequest request) {
+        String currentUsername = getCurrentUsername();
+        commentService.reportComment(commentId, request, currentUsername);
+        return ResponseEntity.ok("Báo cáo bình luận thành công!");
+    }
+
     // ────────────────────────────────────────────────
     // Private helper
     // ────────────────────────────────────────────────

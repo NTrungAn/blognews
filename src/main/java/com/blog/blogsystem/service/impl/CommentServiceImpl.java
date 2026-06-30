@@ -1,7 +1,9 @@
 package com.blog.blogsystem.service.impl;
 
 import com.blog.blogsystem.dto.request.CommentRequest;
+import com.blog.blogsystem.dto.request.CommentReportRequest;
 import com.blog.blogsystem.dto.response.CommentResponse;
+import com.blog.blogsystem.dto.response.CommentReportResponse;
 import com.blog.blogsystem.dto.response.PageResponse;
 import com.blog.blogsystem.entity.Comment;
 import com.blog.blogsystem.entity.CommentReaction;
@@ -10,11 +12,13 @@ import com.blog.blogsystem.entity.User;
 import com.blog.blogsystem.mapper.CommentMapper;
 import com.blog.blogsystem.repository.CommentReactionRepository;
 import com.blog.blogsystem.repository.CommentRepository;
+import com.blog.blogsystem.repository.CommentReportRepository;
 import com.blog.blogsystem.repository.PostRepository;
 import com.blog.blogsystem.repository.UserRepository;
 import com.blog.blogsystem.service.CommentService;
 import com.blog.blogsystem.service.NotificationService;
 import com.blog.blogsystem.entity.enums.NotificationType;
+import com.blog.blogsystem.entity.CommentReport;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -33,6 +37,7 @@ public class CommentServiceImpl implements CommentService {
 
     private final CommentRepository commentRepository;
     private final CommentReactionRepository commentReactionRepository;
+    private final CommentReportRepository commentReportRepository;
     private final PostRepository postRepository;
     private final UserRepository userRepository;
     private final CommentMapper commentMapper;
@@ -41,6 +46,11 @@ public class CommentServiceImpl implements CommentService {
     @Override
     @Transactional
     public CommentResponse createComment(UUID postId, CommentRequest request, String authorUsername) {
+        if ((request.getContent() == null || request.getContent().trim().isEmpty())
+                && (request.getImageUrl() == null || request.getImageUrl().trim().isEmpty())) {
+            throw new IllegalArgumentException("Nội dung bình luận hoặc ảnh đính kèm không được để trống");
+        }
+
         // 1. Tìm bài viết
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy bài viết với id: " + postId));
@@ -108,7 +118,19 @@ public class CommentServiceImpl implements CommentService {
     @Override
     @Transactional
     public void deleteComment(UUID commentId, String currentUsername) {
-        Comment comment = findCommentAndCheckOwnership(commentId, currentUsername);
+        User user = userRepository.findByUsername(currentUsername)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng: " + currentUsername));
+        
+        boolean isAdmin = user.getRoles().stream()
+                .anyMatch(r -> r.getRoleName() == com.blog.blogsystem.entity.enums.RoleType.ADMIN);
+
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy bình luận với id: " + commentId));
+
+        if (!isAdmin && !comment.getAuthor().getUsername().equals(currentUsername)) {
+            throw new RuntimeException("Bạn không có quyền thao tác với bình luận này.");
+        }
+        
         commentRepository.delete(comment);
     }
 
@@ -182,6 +204,100 @@ public class CommentServiceImpl implements CommentService {
 
         commentReactionRepository.findByCommentIdAndUserId(commentId, user.getId())
                 .ifPresent(commentReactionRepository::delete);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PageResponse<CommentResponse> getAllCommentsForAdmin(String keyword, int pageNo, int pageSize) {
+        Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("createdAt").descending());
+        Page<Comment> commentPage = commentRepository.findAllComments(keyword, pageable);
+
+        List<CommentResponse> content = commentPage.getContent().stream()
+                .map(commentMapper::toResponse)
+                .collect(Collectors.toList());
+
+        return PageResponse.<CommentResponse>builder()
+                .content(content)
+                .pageNo(commentPage.getNumber())
+                .pageSize(commentPage.getSize())
+                .totalElements(commentPage.getTotalElements())
+                .totalPages(commentPage.getTotalPages())
+                .last(commentPage.isLast())
+                .build();
+    }
+
+    @Override
+    @Transactional
+    public void reportComment(UUID commentId, CommentReportRequest request, String reporterUsername) {
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy bình luận với id: " + commentId));
+        
+        User reporter = userRepository.findByUsername(reporterUsername)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng báo cáo: " + reporterUsername));
+
+        // Lưu thông tin báo cáo chi tiết
+        CommentReport commentReport = CommentReport.builder()
+                .comment(comment)
+                .reporter(reporter)
+                .reason(request.getReason())
+                .detail(request.getDetail())
+                .build();
+        commentReportRepository.save(commentReport);
+
+        // Tăng tổng số lượt báo cáo trong bảng comments
+        comment.setReportCount(comment.getReportCount() + 1);
+        commentRepository.save(comment);
+    }
+
+    @Override
+    @Transactional
+    public void dismissCommentReport(UUID commentId) {
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy bình luận với id: " + commentId));
+        
+        // Reset report count
+        comment.setReportCount(0);
+        commentRepository.save(comment);
+
+        // Xóa tất cả các báo cáo chi tiết liên quan
+        commentReportRepository.deleteByCommentId(commentId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PageResponse<CommentResponse> getReportedComments(String keyword, int pageNo, int pageSize) {
+        Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("reportCount").descending().and(Sort.by("createdAt").descending()));
+        Page<Comment> commentPage = commentRepository.findReportedComments(keyword, pageable);
+
+        List<CommentResponse> content = commentPage.getContent().stream()
+                .map(c -> {
+                    CommentResponse res = commentMapper.toResponse(c);
+                    
+                    // Lấy danh sách báo cáo chi tiết cho bình luận này
+                    List<CommentReport> reports = commentReportRepository.findByCommentIdOrderByCreatedAtDesc(c.getId());
+                    List<CommentReportResponse> reportResponses = reports.stream()
+                            .map(r -> CommentReportResponse.builder()
+                                    .id(r.getId())
+                                    .reason(r.getReason())
+                                    .detail(r.getDetail())
+                                    .reporterUsername(r.getReporter() != null ? r.getReporter().getUsername() : "Ẩn danh")
+                                    .createdAt(r.getCreatedAt())
+                                    .build())
+                            .collect(Collectors.toList());
+                    
+                    res.setReports(reportResponses);
+                    return res;
+                })
+                .collect(Collectors.toList());
+
+        return PageResponse.<CommentResponse>builder()
+                .content(content)
+                .pageNo(commentPage.getNumber())
+                .pageSize(commentPage.getSize())
+                .totalElements(commentPage.getTotalElements())
+                .totalPages(commentPage.getTotalPages())
+                .last(commentPage.isLast())
+                .build();
     }
 
     // ───────────────────── Private helper ─────────────────────

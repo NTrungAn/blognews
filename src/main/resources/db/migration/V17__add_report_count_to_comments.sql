@@ -1,0 +1,1 @@
+ALTER TABLE comments ADD COLUMN report_count INT NOT NULL DEFAULT 0;

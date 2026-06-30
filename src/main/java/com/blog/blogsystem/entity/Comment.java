@@ -34,6 +34,9 @@ public class Comment {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
+    @Column(name = "image_url", length = 512)
+    private String imageUrl;
+
     // --- CÁC MỐI QUAN HỆ ---
 
     // Bình luận thuộc về một bài viết
@@ -74,4 +77,8 @@ public class Comment {
     @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @Column(name = "report_count", nullable = false)
+    @Builder.Default
+    private int reportCount = 0;
 }

@@ -20,7 +20,11 @@ public interface CommentMapper {
     @Mapping(source = "author.fullName", target = "author.fullName")
     @Mapping(source = "parent.id", target = "parentId")
     @Mapping(target = "reactionsCount", ignore = true)
+    @Mapping(target = "userReaction", ignore = true)
+    @Mapping(target = "reports", ignore = true)
     CommentResponse toResponse(Comment comment);
+
+    CommentResponse.PostInfoDto postToPostInfoDto(com.blog.blogsystem.entity.Post post);
 
     @org.mapstruct.AfterMapping
     default void mapReactionsCount(Comment comment, @org.mapstruct.MappingTarget CommentResponse response) {
@@ -30,6 +34,17 @@ public interface CommentMapper {
                             com.blog.blogsystem.entity.CommentReaction::getEmoji,
                             java.util.stream.Collectors.counting()));
             response.setReactionsCount(counts);
+
+            // Tìm userReaction của người dùng hiện tại
+            org.springframework.security.core.Authentication auth = 
+                org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+            if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getName())) {
+                String username = auth.getName();
+                comment.getReactions().stream()
+                    .filter(r -> r.getUser().getUsername().equals(username))
+                    .findFirst()
+                    .ifPresent(r -> response.setUserReaction(r.getEmoji()));
+            }
         }
     }
 

@@ -113,12 +113,29 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(readOnly = true)
-    public PageResponse<UserResponse> getAllUsers(int pageNo, int pageSize, String sortBy, String sortDir) {
+    public PageResponse<UserResponse> getAllUsers(int pageNo, int pageSize, String sortBy, String sortDir, String keyword, String role) {
         Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending()
                 : Sort.by(sortBy).descending();
         Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
 
-        Page<User> users = userRepository.findAll(pageable);
+        // Parse role filter
+        RoleType roleType = null;
+        if (role != null && !role.isBlank() && !role.equalsIgnoreCase("ALL")) {
+            try {
+                roleType = RoleType.valueOf(role.toUpperCase());
+            } catch (IllegalArgumentException ignored) { /* invalid role = no filter */ }
+        }
+
+        // Normalize keyword
+        String kw = (keyword == null || keyword.isBlank()) ? null : keyword.trim();
+
+        Page<User> users;
+        if (kw == null && roleType == null) {
+            users = userRepository.findAll(pageable);
+        } else {
+            users = userRepository.searchUsers(kw, roleType, pageable);
+        }
+
         List<UserResponse> content = users.getContent().stream()
                 .map(userMapper::toResponse)
                 .collect(Collectors.toList());
@@ -216,5 +233,30 @@ public class UserServiceImpl implements UserService {
                 .totalPosts(totalPosts)
                 .isFollowing(isFollowing)
                 .build();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<PublicProfileResponse> getPopularAuthors() {
+        Pageable pageable = PageRequest.of(0, 5, Sort.by("createdAt").descending());
+        List<User> users = userRepository.findAll(pageable).getContent();
+
+        return users.stream().map(user -> {
+            long totalPosts = postRepository.countByAuthorUsername(user.getUsername());
+            long followersCount = userFollowRepository.countByFollowing(user);
+            long followingCount = userFollowRepository.countByFollower(user);
+            return PublicProfileResponse.builder()
+                    .id(user.getId())
+                    .username(user.getUsername())
+                    .fullName(user.getFullName())
+                    .avatar(user.getAvatar())
+                    .coverImage(user.getCoverImage())
+                    .biography(user.getBiography())
+                    .followersCount((int) followersCount)
+                    .followingCount((int) followingCount)
+                    .totalPosts(totalPosts)
+                    .isFollowing(false)
+                    .build();
+        }).collect(Collectors.toList());
     }
 }

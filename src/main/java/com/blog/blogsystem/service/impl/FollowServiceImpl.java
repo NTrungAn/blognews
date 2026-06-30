@@ -76,6 +76,7 @@ public class FollowServiceImpl implements FollowService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public PageResponse<FollowerResponse> getFollowers(String username, int pageNo, int pageSize) {
         User targetUser = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("Người dùng không tồn tại"));
@@ -103,6 +104,7 @@ public class FollowServiceImpl implements FollowService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public PageResponse<FollowerResponse> getFollowing(String username, int pageNo, int pageSize) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("Người dùng không tồn tại"));

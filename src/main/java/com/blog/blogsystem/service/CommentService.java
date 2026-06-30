@@ -46,4 +46,24 @@ public interface CommentService {
      * Xóa biểu tượng cảm xúc khỏi bình luận.
      */
     void removeReaction(UUID commentId, String currentUsername);
+
+    /**
+     * Lấy toàn bộ danh sách bình luận (phục vụ Admin), có hỗ trợ tìm kiếm và phân trang.
+     */
+    PageResponse<CommentResponse> getAllCommentsForAdmin(String keyword, int pageNo, int pageSize);
+
+    /**
+     * Báo cáo một bình luận vi phạm với lý do cụ thể.
+     */
+    void reportComment(UUID commentId, com.blog.blogsystem.dto.request.CommentReportRequest request, String reporterUsername);
+
+    /**
+     * Bỏ qua các báo cáo vi phạm của một bình luận
+     */
+    void dismissCommentReport(UUID commentId);
+
+    /**
+     * Lấy danh sách bình luận bị báo cáo (report_count > 0)
+     */
+    PageResponse<CommentResponse> getReportedComments(String keyword, int pageNo, int pageSize);
 }

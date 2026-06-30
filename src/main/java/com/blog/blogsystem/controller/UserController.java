@@ -42,6 +42,11 @@ public class UserController {
         return ResponseEntity.ok(userService.getPublicProfile(username, currentUsername));
     }
 
+    @GetMapping("/popular")
+    public ResponseEntity<java.util.List<PublicProfileResponse>> getPopularAuthors() {
+        return ResponseEntity.ok(userService.getPopularAuthors());
+    }
+
     @GetMapping("/{username}/posts")
     public ResponseEntity<PageResponse<PostResponse>> getAuthorPosts(
             @PathVariable String username,
@@ -100,9 +105,11 @@ public class UserController {
             @RequestParam(value = "pageNo",   defaultValue = "0",         required = false) int pageNo,
             @RequestParam(value = "pageSize", defaultValue = "10",        required = false) int pageSize,
             @RequestParam(value = "sortBy",   defaultValue = "createdAt", required = false) String sortBy,
-            @RequestParam(value = "sortDir",  defaultValue = "desc",      required = false) String sortDir
+            @RequestParam(value = "sortDir",  defaultValue = "desc",      required = false) String sortDir,
+            @RequestParam(value = "keyword",  defaultValue = "",          required = false) String keyword,
+            @RequestParam(value = "role",     defaultValue = "",          required = false) String role
     ) {
-        return ResponseEntity.ok(userService.getAllUsers(pageNo, pageSize, sortBy, sortDir));
+        return ResponseEntity.ok(userService.getAllUsers(pageNo, pageSize, sortBy, sortDir, keyword, role));
     }
 
     @PutMapping("/{id}/role")

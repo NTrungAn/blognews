@@ -26,6 +26,28 @@ public class CommentResponse {
     /** Đếm số lượng từng biểu tượng cảm xúc */
     private java.util.Map<String, Long> reactionsCount;
 
+    /** Phản hồi của người dùng hiện tại (nếu có) */
+    private String userReaction;
+
+    /** URL ảnh đính kèm (nếu có) */
+    private String imageUrl;
+
+    /** Số lần bị báo cáo vi phạm */
+    private int reportCount;
+
+    /** Danh sách lý do báo cáo chi tiết (phục vụ Admin) */
+    private List<CommentReportResponse> reports;
+
+    /** Thông tin rút gọn của bài viết chứa bình luận */
+    private PostInfoDto post;
+
+    @Data
+    public static class PostInfoDto {
+        private UUID id;
+        private String title;
+        private String slug;
+    }
+
     @Data
     public static class AuthorDto {
         private UUID id;

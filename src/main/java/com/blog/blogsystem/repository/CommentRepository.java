@@ -40,4 +40,26 @@ public interface CommentRepository extends JpaRepository<Comment, UUID> {
      * Đếm tổng số bình luận của user (dùng cho thống kê profile).
      */
     long countByAuthorUsername(String username);
+
+    /**
+     * Lấy tất cả bình luận (cả gốc và reply) có lọc theo keyword (nội dung hoặc người tạo)
+     */
+    @Query("""
+        SELECT c FROM Comment c
+        WHERE (:keyword IS NULL OR :keyword = '' OR
+               LOWER(c.content) LIKE LOWER(CONCAT('%', :keyword, '%')) OR
+               LOWER(c.author.username) LIKE LOWER(CONCAT('%', :keyword, '%')) OR
+               LOWER(c.author.fullName) LIKE LOWER(CONCAT('%', :keyword, '%')))
+        """)
+    Page<Comment> findAllComments(@Param("keyword") String keyword, Pageable pageable);
+
+    @Query("""
+        SELECT c FROM Comment c
+        WHERE c.reportCount > 0
+          AND (:keyword IS NULL OR :keyword = '' OR
+               LOWER(c.content) LIKE LOWER(CONCAT('%', :keyword, '%')) OR
+               LOWER(c.author.username) LIKE LOWER(CONCAT('%', :keyword, '%')) OR
+               LOWER(c.author.fullName) LIKE LOWER(CONCAT('%', :keyword, '%')))
+        """)
+    Page<Comment> findReportedComments(@Param("keyword") String keyword, Pageable pageable);
 }
