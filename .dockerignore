@@ -1,0 +1,36 @@
+# Build outputs
+target/
+*.jar
+*.war
+
+# Files nhạy cảm và bảo mật (Tuân thủ AI Security Constraints)
+*.local
+src/main/resources/application-local.properties
+blog-secrets.*
+secrets/
+
+# Cơ sở dữ liệu local và uploads
+*.db
+uploads/
+app.log
+app.err.log
+*.log
+
+# Git và IDEs
+.git/
+.gitignore
+.gitattributes
+.idea/
+.vscode/
+*.iml
+.DS_Store
+
+# Maven wrapper và các file cài đặt local không cần thiết
+.mvn/
+mvnw
+mvnw.cmd
+HELP.md
+
+# Docker files
+Dockerfile
+.dockerignore
