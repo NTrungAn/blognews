@@ -1,6 +1,8 @@
 package com.blog.blogsystem.controller;
 
 import com.blog.blogsystem.dto.request.PostRequest;
+import com.blog.blogsystem.dto.request.SuggestContentRequest;
+import jakarta.validation.Valid;
 import com.blog.blogsystem.dto.response.PageResponse;
 import com.blog.blogsystem.dto.response.PostResponse;
 import com.blog.blogsystem.service.FileStorageService;
@@ -100,6 +102,21 @@ public class PostController {
 
         String currentUsername = getCurrentUsername();
         return new ResponseEntity<>(postService.createPost(request, currentUsername), HttpStatus.CREATED);
+    }
+
+    /**
+     * Gợi ý nội dung bài viết bằng AI.
+     */
+    @PostMapping("/suggest-content")
+    public ResponseEntity<com.blog.blogsystem.dto.response.ApiResponse<String>> suggestPostContent(
+            @Valid @RequestBody SuggestContentRequest request
+    ) {
+        String suggestion = postService.suggestPostContent(request.getTitle(), request.getSummary());
+        return ResponseEntity.ok(com.blog.blogsystem.dto.response.ApiResponse.<String>builder()
+                .code(200)
+                .message("Gợi ý nội dung thành công")
+                .data(suggestion)
+                .build());
     }
 
     /**

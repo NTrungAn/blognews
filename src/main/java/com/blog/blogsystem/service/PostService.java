@@ -27,4 +27,6 @@ public interface PostService {
     PostResponse updatePostStatusByAdmin(UUID id, com.blog.blogsystem.entity.enums.PostStatus status, String adminUsername);
 
     String summarizePost(UUID id);
+
+    String suggestPostContent(String title, String summary);
 }

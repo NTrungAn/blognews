@@ -232,7 +232,7 @@ public class PostServiceImpl implements PostService {
     public void deletePost(UUID id, String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng: " + username));
-        
+
         boolean isAdmin = user.getRoles().stream()
                 .anyMatch(r -> r.getRoleName() == com.blog.blogsystem.entity.enums.RoleType.ADMIN);
 
@@ -315,7 +315,8 @@ public class PostServiceImpl implements PostService {
                     return textNode.asText();
                 }
             }
-            return "💡 [Lưu ý: Lỗi kết nối Google API (Status: " + response.statusCode() + ", Phản hồi: " + response.body() + "), đang sử dụng chế độ dự phòng]\n\n"
+            return "💡 [Lưu ý: Lỗi kết nối Google API (Status: " + response.statusCode() + ", Phản hồi: "
+                    + response.body() + "), đang sử dụng chế độ dự phòng]\n\n"
                     + generateMockSummary(post);
         } catch (Exception e) {
             return "💡 [Lưu ý: Có lỗi xảy ra (" + e.getMessage() + "), đang sử dụng chế độ dự phòng thông minh]\n\n"
@@ -375,5 +376,89 @@ public class PostServiceImpl implements PostService {
         post.setStatus(status);
         Post savedPost = postRepository.save(post);
         return postMapper.toResponse(savedPost);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public String suggestPostContent(String title, String summary) {
+        String apiKey = geminiApiKey;
+
+        if (apiKey == null || apiKey.isBlank()) {
+            return generateMockSuggestion(title, summary);
+        }
+
+        try {
+            String prompt = "Hãy đóng vai trò là một biên tập viên, nhà sáng tạo nội dung chuyên nghiệp.\n"
+                    + "Dựa vào tiêu đề bài viết: \"" + title + "\"\n"
+                    + "Và tóm tắt bài viết (nếu có): \"" + (summary != null ? summary : "") + "\"\n\n"
+                    + "Hãy gợi ý một dàn ý chi tiết định dạng Markdown đẹp mắt, bao gồm các tiêu đề lớn H2, tiêu đề nhỏ H3 và gợi ý hướng đi nội dung, từ khóa hoặc các câu hỏi cần trả lời cho từng phần.\n"
+                    + "Hãy phản hồi hoàn toàn bằng tiếng Việt, súc tích, chuyên nghiệp và có chiều sâu.";
+
+            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            String promptJson = mapper.writeValueAsString(prompt);
+            String payload = "{\"contents\":[{\"parts\":[{\"text\":" + promptJson + "}]}]}";
+
+            java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
+            java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
+                    .uri(java.net.URI.create(
+                            "https://generativelanguage.googleapis.com/v1/models/gemini-3.1-flash-lite:generateContent?key="
+                                    + apiKey))
+                    .header("Content-Type", "application/json")
+                    .POST(java.net.http.HttpRequest.BodyPublishers.ofString(payload,
+                            java.nio.charset.StandardCharsets.UTF_8))
+                    .build();
+
+            java.net.http.HttpResponse<String> response = client.send(request,
+                    java.net.http.HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() == 200) {
+                String body = response.body();
+                com.fasterxml.jackson.databind.JsonNode rootNode = mapper.readTree(body);
+                com.fasterxml.jackson.databind.JsonNode textNode = rootNode.path("candidates").path(0).path("content")
+                        .path("parts").path(0).path("text");
+                if (!textNode.isMissingNode()) {
+                    return textNode.asText();
+                }
+            }
+            return "💡 [Lưu ý: Lỗi kết nối Google API (Status: " + response.statusCode()
+                    + "), đang sử dụng chế độ gợi ý dự phòng]\n\n"
+                    + generateMockSuggestion(title, summary);
+        } catch (Exception e) {
+            return "💡 [Lưu ý: Có lỗi xảy ra (" + e.getMessage() + "), đang sử dụng chế độ gợi ý dự phòng]\n\n"
+                    + generateMockSuggestion(title, summary);
+        }
+    }
+
+    private String generateMockSuggestion(String title, String summary) {
+        StringBuilder suggestion = new StringBuilder();
+        suggestion.append("Gợi ý dàn ý cho bài viết: ").append(title).append("\n\n");
+        if (summary != null && !summary.isBlank()) {
+            suggestion.append("Tóm tắt ý tưởng: ").append(summary).append("\n\n");
+        }
+
+        suggestion.append("1. Giới thiệu (Introduction)\n");
+        suggestion.append("   Mục tiêu: Dẫn dắt người đọc vào chủ đề \"").append(title).append("\".\n");
+        suggestion.append(
+                "   Nội dung gợi ý: Đưa ra số liệu thực tế, vấn đề nhức nhối hoặc một câu chuyện truyền cảm hứng để kích thích sự tò mò của người đọc. Kết bài phần mở đầu bằng câu luận đề (thesis statement) định hình toàn bài viết.\n\n");
+
+        suggestion.append("2. Nội dung chính (Key Points)\n");
+        suggestion.append(" Khái niệm và Tầm quan trọng\n");
+        suggestion.append("   Định nghĩa rõ ràng về chủ đề bài viết.\n");
+        suggestion.append("   Tại sao độc giả cần quan tâm đến vấn đề này ngay lập tức?\n\n");
+        suggestion.append(" Các bước thực hiện / Phương pháp cốt lõi\n");
+        suggestion.append("   Bước 1: Chuẩn bị kỹ lưỡng và xác định mục tiêu cụ thể.\n");
+        suggestion.append("   Bước 2: Thực hiện từng phần nhỏ theo lộ trình tối ưu.\n");
+        suggestion.append("   Bước 3: Đo lường, đánh giá kết quả và cải thiện liên tục.\n\n");
+        suggestion.append(" Những sai lầm thường gặp & Giải pháp\n");
+        suggestion.append("   Liệt kê 2-3 cạm bẫy người mới hay mắc phải.\n");
+        suggestion.append("   Đưa ra giải pháp khắc phục thực tế, dễ áp dụng.\n\n");
+
+        suggestion.append(" 3. Kết luận (Conclusion)\n");
+        suggestion.append("   Tóm tắt ngắn gọn các ý chính đã thảo luận trong bài viết.\n");
+        suggestion.append(
+                "   Kêu gọi hành động (Call to Action): Khuyến khích độc giả để lại bình luận chia sẻ quan điểm hoặc áp dụng ngay vào thực tế.\n\n");
+
+        suggestion.append("\n Cấu hình biến môi trường `GEMINI_API_KEY` để kích hoạt Trí tuệ Nhân tạo thực tế.*");
+        return suggestion.toString();
     }
 }
