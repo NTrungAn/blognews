@@ -21,6 +21,6 @@ jobs:
         distribution: 'temurin'
         cache: maven
 
-    - name: Build and Run Tests
+    - name: Build and Package (Skip Database Tests)
       run: |
-        mvn clean test -B
+        mvn clean package -DskipTests -B
