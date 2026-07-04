@@ -51,8 +51,8 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        // Cho phép frontend domain (Vite default port là 5173)
-        configuration.setAllowedOrigins(List.of("http://localhost:5173"));
+        // Cho phép frontend domain (hỗ trợ localhost dev, docker port 3000 và Vercel deploy)
+        configuration.setAllowedOriginPatterns(List.of("http://localhost:5173", "http://localhost:3000", "https://*.vercel.app"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Requested-With"));
         configuration.setAllowCredentials(true);
