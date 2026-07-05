@@ -35,3 +35,7 @@ build/
 # Local configuration files (chứa key bảo mật máy cá nhân)
 **/application-local.properties
 **/application-local.yml
+
+# AI Agent configuration & skills
+agent-skills/
+
