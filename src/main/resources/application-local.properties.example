@@ -7,3 +7,7 @@ spring.datasource.password=your_db_password
 
 # Khóa API Google Gemini để sử dụng Trợ lý Tóm tắt AI
 GEMINI_API_KEY=AIzaSyYourGeminiApiKeyHere
+
+# Khóa bí mật JWT (tối thiểu 32 ký tự, mỗi khóa phải khác nhau)
+JWT_SECRET=YourSecretAccessKeyAtLeast32CharsLong
+JWT_REFRESH_SECRET=YourSecretRefreshKeyAtLeast32CharsLong

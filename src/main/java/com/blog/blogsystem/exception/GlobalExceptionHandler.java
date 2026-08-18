@@ -1,6 +1,7 @@
 package com.blog.blogsystem.exception;
 
 import com.blog.blogsystem.dto.response.ApiResponse;
+import com.blog.blogsystem.exception.InvalidTokenException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -29,6 +30,15 @@ public class GlobalExceptionHandler {
                 .data(errors)
                 .build();
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(InvalidTokenException.class)
+    public ResponseEntity<ApiResponse<Void>> handleInvalidTokenException(InvalidTokenException ex) {
+        ApiResponse<Void> response = ApiResponse.<Void>builder()
+                .code(HttpStatus.UNAUTHORIZED.value())
+                .message(ex.getMessage())
+                .build();
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
