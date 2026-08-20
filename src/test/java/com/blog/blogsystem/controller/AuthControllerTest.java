@@ -362,6 +362,7 @@ public class AuthControllerTest {
                 .user(user)
                 .tokenHash(sha256(rawToken))
                 .deviceInfo("Test-Agent")
+                .familyId(UUID.randomUUID())
                 .expiresAt(LocalDateTime.now().plusDays(7))
                 .revoked(false)
                 .build();
