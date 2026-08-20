@@ -108,7 +108,8 @@ public class NotificationControllerTest {
 
         mockMvc.perform(get("/api/notifications/unread-count"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$").value(2));
+                .andExpect(jsonPath("$.code").value(200))
+                .andExpect(jsonPath("$.data").value(2));
     }
 
     @Test
@@ -124,7 +125,8 @@ public class NotificationControllerTest {
         // Verify state
         mockMvc.perform(get("/api/notifications/unread-count"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$").value(0));
+                .andExpect(jsonPath("$.code").value(200))
+                .andExpect(jsonPath("$.data").value(0));
     }
 
     @Test
@@ -141,12 +143,13 @@ public class NotificationControllerTest {
         // Verify count is 0
         mockMvc.perform(get("/api/notifications/unread-count"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$").value(0));
+                .andExpect(jsonPath("$.code").value(200))
+                .andExpect(jsonPath("$.data").value(0));
     }
 
     @Test
     public void testGetMyNotifications_Unauthorized_WithoutToken() throws Exception {
         mockMvc.perform(get("/api/notifications"))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isForbidden());
     }
 }

@@ -150,8 +150,7 @@ public class CommentControllerTest {
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value(400))
-                .andExpect(jsonPath("$.message").value("Validation failed"))
-                .andExpect(jsonPath("$.data.content").value("Nội dung bình luận không được để trống"));
+                .andExpect(jsonPath("$.message").value("Nội dung bình luận hoặc ảnh đính kèm không được để trống"));
     }
 
     // Chủ bình luận được phép cập nhật lại nội dung comment của mình.
