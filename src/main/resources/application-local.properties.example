@@ -11,3 +11,11 @@ GEMINI_API_KEY=AIzaSyYourGeminiApiKeyHere
 # Khóa bí mật JWT (tối thiểu 32 ký tự, mỗi khóa phải khác nhau)
 JWT_SECRET=YourSecretAccessKeyAtLeast32CharsLong
 JWT_REFRESH_SECRET=YourSecretRefreshKeyAtLeast32CharsLong
+
+# Nơi lưu ảnh upload: local (thư mục uploads/) | cloudinary
+STORAGE_TYPE=cloudinary
+
+# Khóa Cloudinary (lấy tại Dashboard → API Keys trên cloudinary.com)
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret

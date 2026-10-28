@@ -130,6 +130,13 @@
 			<version>2.8.6</version>
 		</dependency>
 
+		<!-- Cloudinary SDK: lưu trữ ảnh upload trên cloud -->
+		<dependency>
+			<groupId>com.cloudinary</groupId>
+			<artifactId>cloudinary-http5</artifactId>
+			<version>2.5.0</version>
+		</dependency>
+
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-devtools</artifactId>
